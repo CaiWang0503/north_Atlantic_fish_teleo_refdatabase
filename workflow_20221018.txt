@@ -1,32 +1,32 @@
 workflow for creating the customer teleo reference database 
 
-#1.download the fish sequences from these three sources.
+#1. Downloading the fish sequences from these three sources.
 https://github.com/uit-metabarcoding/DUFA/tree/master/DUFA_COLR
 http://mitofish.aori.u-tokyo.ac.jp/
 https://github.com/genner-lab/meta-fish-lib
-after downloading the sequence, merge three fasta files into one.
 
-#2.Give all the sequence the full path of taxonomy and corrected species name.
-(using package "taxize" for getting sequences name from the original file and then compare them with the ncbi source name )
+#2. Using R package "taxize" to give all the sequences the full path of taxonomy and corrected species name.
 (on this step, need to check the path manually sometimes because the species name doesn't match the sequence id.)
 
-#3.after receive the path from R code, create two files for BLCA, the format of it can be found on https://github.com/qunfengdong/BLCA
+#3. After receiving the path, create two files for BLCA, the format of them can be found at https://github.com/qunfengdong/BLCA
 
-#4.because the sequences download from three different sources, the mitofish is the whole mitochondrial genome， the seaDNA and Dufa is 12S fragment only, they need to be trimed as the same length.
-the code for doing this is:
+#4. Because the sequences download from three different sources, the mitofish is the whole mitochondrial genome, the seaDNA and Dufa are ready to use 12S fragment, and the mitofish reference sequences need to be trimmed as the same length.
+the code for trimming is:
 seqkit sort --quiet -l sequence.fasta>sequence_sort.fasta #sort sequence by length
 seqkit amplicon -F AAACTCGTGCCAGCCACC -R GGGTATCTAATCCCAGTTTG -r 16:187 -m 4  12S_custom_final.fasta > 12S_peter_teleo_03042022.fasta # -r output the 16th to 187th base from the search result, which exclude the prime; -m max mismatch when matching primers
 
-#5.after trim the reference database, mach the sequence to its path in the taxonomy file, delete the taxonomy path which the sequence not amplify by teleo.
+#5. After trimming, match the sequence id to its path in the taxonomy file, delete the taxonomy path which the sequences do not amplify by teleo (not 12S rRNA fragment).
 
-#6.run the BLCA with three different parameter, because when there only a few target sequence, use --iset 90 cannnot get down to species level, it returns a wide identification, so need to run 97 and 99.5 to see if some species only have few reference sequences.
+#6. Run the BLCA with three different parameters, because when there are only a few reference sequences, use --iset 90 can not get down to species level, it returns a wide identification, so need to run 97 and 99.5 to check, default is 90
 6.1 makeblastdb -in 12S_trim_teleo_04032022.fasta -dbtype nucl -parse_seqids -out 12S_trim_teleo
-6.2 python3 /Users/wang/src/BLCA/2.blca_main.py -i tel12snatl_l1_SWARM3_seeds.fasta -r /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/tax_mito_DUFA_seaDNA_peter_03042022.ACC.taxonomy.txt -q /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/12S_trim_teleo -p 3 -j 20 -c 0.3 -o na12s_teleo_l1_SWARM3_defaul.txt
-python3 /Users/wang/src/BLCA/2.blca_main.py -i tel12snatl_l1_SWARM3_seeds.fasta -r /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/tax_mito_DUFA_seaDNA_peter_03042022.ACC.taxonomy.txt -q /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/12S_trim_teleo -p 3 -j 20  -c 0.3 --iset 97 -o na12s_teleo_l1_SWARM3_iset97.txt
+6.2.1 python3 /Users/wang/src/BLCA/2.blca_main.py -i tel12snatl_l1_SWARM3_seeds.fasta -r /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/tax_mito_DUFA_seaDNA_peter_03042022.ACC.taxonomy.txt -q /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/12S_trim_teleo -p 3 -j 20  -c 0.3 -o na12s_teleo_l1_SWARM3_defaul.txt
+6.2.2 python3 /Users/wang/src/BLCA/2.blca_main.py -i tel12snatl_l1_SWARM3_seeds.fasta -r /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/tax_mito_DUFA_seaDNA_peter_03042022.ACC.taxonomy.txt -q /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/12S_trim_teleo -p 3 -j 20  -c 0.3 --iset 97 -o na12s_teleo_l1_SWARM3_iset97.txt
+6.2.3 python3 /Users/wang/src/BLCA/2.blca_main.py -i tel12snatl_l1_SWARM3_seeds.fasta -r /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/tax_mito_DUFA_seaDNA_peter_03042022.ACC.taxonomy.txt -q /Users/wang/src/BLCA/12S_mito_DUFA_seaDNA/12S_trim_teleo -p 3 -j 20  -c 0.3 --iset 99.5 -o na12s_teleo_l1_SWARM3_iset99.5.txt
 
-#7.merge three output files to get the final file, see r code
+#7. Merge three output files to get the final file, see r code
 
-##note###the final taxonomy and sequence fasta file are provide in this github, they can be used to run the BLCA directly with the code provide above. 
+##note###the final taxonomy and sequence fasta file are provided, they can be used to run the BLCA directly with the code provided above. 
+can add more sequences directly into the reference database in the future for other studies.
 Reference database: 
 12S_trim_teleo_04032022.fasta
 Reference sequence taxonomy path:
